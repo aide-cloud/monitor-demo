@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package api.order;
+
+import "google/api/annotations.proto";
+
+option go_package = "monitor-demo/api/order;order";
+option java_multiple_files = true;
+option java_package = "api.order";
+
+service Order {
+	// 创建订单
+	rpc CreateOrder (CreateOrderRequest) returns (CreateOrderReply) {
+		option (google.api.http) = {
+			post: "/api/v1/order/create"
+			body: "*"
+		};
+	}
+	// 查询订单
+	rpc GetOrder (GetOrderRequest) returns (GetOrderReply) {
+		option (google.api.http) = {
+			post: "/api/v1/order/detail"
+			body: "*"
+		};
+	}
+}
+
+message CreateOrderRequest {
+	string outerTradeNo = 1;
+	string goodsCode = 2;
+	string goodsName = 3;
+	int64 price = 4;
+	int64 quantity = 5;
+}
+message CreateOrderReply {
+	string orderNo = 1;
+	string outerTradeNo = 2;
+}
+
+message GetOrderRequest {
+	string orderNo = 1;
+	string outerTradeNo = 2;
+	string goodsCode = 3;
+}
+message GetOrderReply {
+	string orderNo = 1;
+	string outerTradeNo = 2;
+	string goodsCode = 3;
+	string goodsName = 4;
+	int64 price = 5;
+	int64 quantity = 6;
+	int64 status = 7;
+}

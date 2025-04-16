@@ -8,6 +8,8 @@ import (
 
 	pb "monitor-demo/api/order"
 	"monitor-demo/internal/metrics"
+
+	"github.com/go-kratos/kratos/v2/errors"
 )
 
 type OrderService struct {
@@ -21,39 +23,49 @@ func NewOrderService() *OrderService {
 func (s *OrderService) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*pb.CreateOrderReply, error) {
 	startTime := time.Now()
 	defer func() {
-		// 记录请求处理时间
 		metrics.OrderRequestDuration.WithLabelValues("create").Observe(time.Since(startTime).Seconds())
 	}()
 
 	reply, err := s.createOrder(ctx, req)
 	if err != nil {
-		// 记录失败请求
-		metrics.OrderRequests.WithLabelValues("create", "error").Inc()
+		// 增加错误类型标签
+		errCode := errors.FromError(err).GetReason()
+		switch errCode {
+		case pb.ErrorReason_ORDER_TIMEOUT.String():
+			metrics.OrderRequests.WithLabelValues("create", "error", "timeout").Inc()
+		case pb.ErrorReason_ORDER_GOODS_UNAUTHORIZED.String():
+			metrics.OrderRequests.WithLabelValues("create", "error", "unauthorized").Inc()
+		case pb.ErrorReason_ORDER_GOODS_PRICE_ERROR.String():
+			metrics.OrderRequests.WithLabelValues("create", "error", "invalid_price").Inc()
+		case pb.ErrorReason_ORDER_GOODS_QUANTITY_ERROR.String():
+			metrics.OrderRequests.WithLabelValues("create", "error", "invalid_quantity").Inc()
+		default:
+			metrics.OrderRequests.WithLabelValues("create", "error", "unknown").Inc()
+		}
 		return nil, err
 	}
 
-	// 记录成功请求
-	metrics.OrderRequests.WithLabelValues("create", "success").Inc()
+	metrics.OrderRequests.WithLabelValues("create", "success", "").Inc()
 	return reply, nil
 }
 
 func (s *OrderService) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.GetOrderReply, error) {
 	startTime := time.Now()
 	defer func() {
-		// 记录请求处理时间
 		metrics.OrderRequestDuration.WithLabelValues("query").Observe(time.Since(startTime).Seconds())
 	}()
 
 	reply, err := s.getOrder(ctx, req)
 	if err != nil {
-		// 记录失败请求
-		metrics.OrderRequests.WithLabelValues("query", "error").Inc()
+		if pb.IsOrderNotFound(err) {
+			metrics.OrderRequests.WithLabelValues("query", "error", "not_found").Inc()
+		} else {
+			metrics.OrderRequests.WithLabelValues("query", "error", "unknown").Inc()
+		}
 		return nil, err
 	}
 
-	// 记录成功请求
-	metrics.OrderRequests.WithLabelValues("query", "success").Inc()
-	// 更新订单状态计数
+	metrics.OrderRequests.WithLabelValues("query", "success", "").Inc()
 	metrics.OrderStatusGauge.WithLabelValues(getStatusString(reply.Status)).Inc()
 
 	return reply, nil

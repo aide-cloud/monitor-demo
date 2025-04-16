@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+  prom:
+    container_name: prom
+    image: quay.io/prometheus/prometheus:latest
+    user: root
+    volumes:
+      - ./prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/data:/prometheus
+      - ./prometheus/etc/localtime:/etc/localtime
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    depends_on:
+      - alertmanager
+
+  # 添加告警模块
+  alertmanager:
+    container_name: alertmanager
+    image: prom/alertmanager:latest
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/config:/config
+      - ./alertmanager/data:/alertmanager/data
+    command:
+      - '--config.file=/config/alertmanager.yml'
+      - '--storage.path=/alertmanager/data'
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    user: root
+    ports:
+      - "3000:3000"
+    environment:
+      - 'GF_SECURITY_ADMIN_PASSWORD=123456'
+    volumes:
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ./grafana/data/:/var/lib/grafana
+      - ./grafana/etc/grafana/:/etc/grafana/
+      - ./grafana/etc/localtime:/etc/localtime
+      - ./grafana/log:/var/log/grafana
+
+    depends_on:
+      - prom

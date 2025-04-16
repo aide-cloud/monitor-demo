@@ -1,0 +1,56 @@
+# ——————————————————————————————————————————————————————————————————————————————————————————————————————
+# 属性	                          描述
+# scrape_interval	      样本采集周期，默认为1分钟采集一次
+# evaluation_interval	  告警规则计算周期，默认为1分钟计算一次
+# rule_files	          指定告警规则的文件
+# scrape_configs	      job的配置项，里面可配多组job任务
+# job_name	            任务名称，需要唯一性
+# static_configs	      job_name的配置选项，一般使用file_sd_configs 热加载配置
+# file_sd_configs	      job_name的动态配置选项，使用此配置可以实现配置文件的热加载
+# files	                file_sd_configs配置的服务发现的文件路径列表，支持.json，.yml或.yaml，路径最后一层支持通配符*
+# refresh_interval	    file_sd_configs中的files重新加载的周期，默认5分钟
+# https://blog.csdn.net/bluuusea/article/details/104619235/
+# ——————————————————————————————————————————————————————————————————————————————————————————————————————
+
+global:
+  scrape_interval: 15s # 采样周期
+  evaluation_interval: 15s # 告警规则计算周期
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: [ 'prom:9090' ]
+        labels:
+          application: "prometheus"
+
+  - job_name: 'order'
+    static_configs:
+      - targets: [ '192.168.10.68:8000' ]
+        labels:
+          application: "order-server"
+
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: [ 'alertmanager:9093' ]
+        labels:
+          application: "alertmanager"
+
+  - job_name: 'grafana'
+    static_configs:
+      - targets: [ 'grafana:3000' ]
+        labels:
+          application: "grafana"
+
+#rule_files:
+#  - 'rules/*_rules.yml'
+
+# AlertManager configuration
+#alerting:
+#  alertmanagers:
+#    - timeout: 10s # 发送超时时间
+#      path_prefix: / # 路径
+#      scheme: http # 协议
+#      static_configs:
+#        # 告警管理器实例，一个或多个
+#        - targets:
+#            - 'alertmanager:9093'

@@ -40,3 +40,9 @@ bin/
 .idea
 wire_gen.go
 openapi.yaml
+prometheus/alertmanager/data
+prometheus/grafana/data
+prometheus/grafana/etc
+prometheus/grafana/log
+prometheus/prometheus/data
+prometheus/prometheus/etc

@@ -1,0 +1,23 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: [ 'alertname' ]
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1m
+  receiver: 'web.hook'
+
+receivers:
+  - name: 'web.hook'
+    webhook_configs:
+      #      - url: 'http://124.223.104.203:5000/webhook'
+      #      - url: 'http://192.168.14.41:18000/alert/v1/webhook'
+      - url: 'http://192.168.10.2:8880/api/alert/hook'
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: [ 'alertname', 'dev', 'instance' ]

@@ -39,6 +39,9 @@ func NewHTTPServer(
 	v1.RegisterGreeterHTTPServer(srv, greeter)
 	order.RegisterOrderHTTPServer(srv, orderService)
 
+	// 启动模拟请求
+	simulateRequests(orderService)
+
 	srv.Handle("/metrics", promhttp.Handler())
 	return srv
 }

@@ -68,9 +68,9 @@ var (
 			Name:      "amount_distribution",
 			Help:      "Distribution of order amounts",
 			Objectives: map[float64]float64{
-				0.5:  0.05,
-				0.9:  0.01,
-				0.99: 0.001,
+				0.5:  0.05,  // 表示第50个百分位（中位数），允许5%的误差
+				0.9:  0.01,  // 表示第90个百分位，允许1%的误差
+				0.99: 0.001, // 表示第99个百分位，允许0.1%的误差
 			},
 		},
 		[]string{"type"},

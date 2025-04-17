@@ -372,6 +372,51 @@ monitor_demo_request_latency_seconds{quantile=~"0.5|0.9|0.99"}
 monitor_demo_request_latency_seconds{quantile="0.99"}
 ```
 
+## Summary Metrics Query Examples
+
+### Processing Time Percentiles
+```promql
+# Query 90th percentile of order processing time
+monitor_demo_order_processing_seconds{quantile="0.9"}
+
+# Query median processing time for different methods
+monitor_demo_order_processing_seconds{quantile="0.5"}
+
+# Query 99th percentile processing time for all methods
+monitor_demo_order_processing_seconds{quantile="0.99"}
+```
+
+### Order Amount Distribution
+```promql
+# Query median order amount
+monitor_demo_order_amount_distribution{quantile="0.5"}
+
+# Query high-value orders (90th percentile)
+monitor_demo_order_amount_distribution{quantile="0.9"}
+
+# Calculate sample count over last 5 minutes
+rate(monitor_demo_order_amount_distribution_count[5m])
+
+# Calculate total amount over last 5 minutes
+rate(monitor_demo_order_amount_distribution_sum[5m])
+```
+
+### Comparing Histogram and Summary
+1. Summary Advantages:
+   - Calculates quantiles directly on the client
+   - Lower computational resource usage
+   - Suitable for scenarios requiring precise quantiles
+
+2. Summary Limitations:
+   - Cannot aggregate quantiles across multiple instances
+   - Pre-defined quantiles cannot be changed
+   - Quantile calculations may be inaccurate over longer time ranges
+
+3. Usage Recommendations:
+   - Use Summary for latency monitoring of single-instance services
+   - Use Histogram when aggregating data from multiple instances
+   - Use Histogram when dynamic quantile calculations are needed
+
 ## PromQL Function Reference
 
 ### 1. Aggregation Operators

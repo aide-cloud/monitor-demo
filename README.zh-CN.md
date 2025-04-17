@@ -371,6 +371,51 @@ monitor_demo_request_latency_seconds{quantile=~"0.5|0.9|0.99"}
 monitor_demo_request_latency_seconds{quantile="0.99"}
 ```
 
+## Summary 指标查询示例
+
+### 处理时间百分位数
+```promql
+# 查询订单处理时间的90%分位数
+monitor_demo_order_processing_seconds{quantile="0.9"}
+
+# 查询不同方法的处理时间中位数
+monitor_demo_order_processing_seconds{quantile="0.5"}
+
+# 查询所有方法的99%分位数处理时间
+monitor_demo_order_processing_seconds{quantile="0.99"}
+```
+
+### 订单金额分布
+```promql
+# 查询订单金额的中位数
+monitor_demo_order_amount_distribution{quantile="0.5"}
+
+# 查询高价值订单（90%分位）
+monitor_demo_order_amount_distribution{quantile="0.9"}
+
+# 计算最近5分钟的样本数
+rate(monitor_demo_order_amount_distribution_count[5m])
+
+# 计算最近5分钟的金额总和
+rate(monitor_demo_order_amount_distribution_sum[5m])
+```
+
+### Histogram 和 Summary 对比
+1. Summary 优势:
+   - 在客户端直接计算分位数
+   - 计算资源消耗较小
+   - 适合需要精确分位数的场景
+
+2. Summary 限制:
+   - 无法聚合多个实例的分位数
+   - 预先定义的分位数无法改变
+   - 较长时间范围的分位数计算可能不准确
+
+3. 使用建议:
+   - 对于单实例服务的延迟监控，使用 Summary
+   - 需要聚合多个实例数据时，使用 Histogram
+   - 需要动态计算不同分位数时，使用 Histogram
+
 ## PromQL 函数参考
 
 ### 1. 聚合运算符

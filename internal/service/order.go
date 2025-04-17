@@ -23,7 +23,13 @@ func NewOrderService() *OrderService {
 func (s *OrderService) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*pb.CreateOrderReply, error) {
 	startTime := time.Now()
 	defer func() {
-		metrics.OrderRequestDuration.WithLabelValues("create").Observe(time.Since(startTime).Seconds())
+		duration := time.Since(startTime).Seconds()
+		// 使用Histogram记录请求持续时间
+		metrics.OrderRequestDuration.WithLabelValues("create").Observe(duration)
+		// 使用Summary记录处理时间
+		metrics.OrderProcessingTime.WithLabelValues("create", "success").Observe(duration)
+		// 记录订单金额
+		metrics.OrderAmountSummary.WithLabelValues("create").Observe(float64(req.Price))
 	}()
 
 	reply, err := s.createOrder(ctx, req)
@@ -52,7 +58,11 @@ func (s *OrderService) CreateOrder(ctx context.Context, req *pb.CreateOrderReque
 func (s *OrderService) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.GetOrderReply, error) {
 	startTime := time.Now()
 	defer func() {
-		metrics.OrderRequestDuration.WithLabelValues("query").Observe(time.Since(startTime).Seconds())
+		duration := time.Since(startTime).Seconds()
+		// 使用Histogram记录请求持续时间
+		metrics.OrderRequestDuration.WithLabelValues("query").Observe(duration)
+		// 使用Summary记录处理时间
+		metrics.OrderProcessingTime.WithLabelValues("query", "success").Observe(duration)
 	}()
 
 	reply, err := s.getOrder(ctx, req)

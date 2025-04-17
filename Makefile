@@ -56,6 +56,7 @@ build:
 generate:
 	go generate ./...
 	go mod tidy
+	cd cmd/monitor-demo && wire
 
 .PHONY: all
 # generate all

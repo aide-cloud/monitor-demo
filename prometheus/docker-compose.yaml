@@ -17,8 +17,9 @@ services:
       - "9090:9090"
     depends_on:
       - alertmanager
+    networks:
+      - monitor-net
 
-  # 添加告警模块
   alertmanager:
     container_name: alertmanager
     image: prom/alertmanager:latest
@@ -30,6 +31,8 @@ services:
     command:
       - '--config.file=/config/alertmanager.yml'
       - '--storage.path=/alertmanager/data'
+    networks:
+      - monitor-net
 
   grafana:
     container_name: grafana
@@ -38,13 +41,50 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - 'GF_SECURITY_ADMIN_PASSWORD=123456'
+      - GF_SECURITY_ADMIN_PASSWORD=123456
     volumes:
       - ./grafana/grafana.ini:/etc/grafana/grafana.ini
       - ./grafana/data/:/var/lib/grafana
       - ./grafana/etc/grafana/:/etc/grafana/
       - ./grafana/etc/localtime:/etc/localtime
       - ./grafana/log:/var/log/grafana
-
     depends_on:
       - prom
+    networks:
+      - monitor-net
+
+  order:
+    container_name: order
+#    image: monitor-demo:latest
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"  # HTTP API端口
+      - "9000:9000"  # rpc端口
+    volumes:
+      - ../configs:/data/conf
+    environment:
+      - TZ=Asia/Shanghai
+      - GOPROXY=https://goproxy.cn
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    restart: unless-stopped
+    networks:
+      - monitor-net
+
+networks:
+  monitor-net:
+    driver: bridge

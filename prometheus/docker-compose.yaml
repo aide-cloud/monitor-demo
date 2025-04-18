@@ -61,7 +61,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"  # HTTP API端口
-      - "9000:9000"  # rpc端口
     volumes:
       - ../configs:/data/conf
     environment:
